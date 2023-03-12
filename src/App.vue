@@ -1,26 +1,36 @@
-<template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
-</template>
+<script setup>
+  import * as THREE from "three";
+  import { onMounted } from "vue";
+  
+  // Scene
+  const scene = new THREE.Scene();
+  
+  // Object
+  const geometry = new THREE.TorusGeometry( 10, 3, 16, 10 );
+  const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+  const torus = new THREE.Mesh( geometry, material );
+  scene.add( torus );
+  
+  // Camera
+  const camera = new THREE.PerspectiveCamera(
+      45, // Field of view, NB image easily distorted
+      800,600 // Aspect ratio
+  );
+  scene.add( camera );
 
-<script>
-import HelloWorld from './components/HelloWorld.vue'
+  // Renderer
+  const canvas = document.querySelector(".webgl");
+  const renderer = new THREE.WebGLRenderer({ canvas });
+  renderer.setSize(800,600)
+  renderer.render(scene, camera);
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+<template>
+  <canvas class="webgl"></canvas>
+</template>
+
+<style scoped>
+
 </style>
