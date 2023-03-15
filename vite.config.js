@@ -5,6 +5,6 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   publicPath: process.env.NODE_ENV === 'production'
-  ? '/buildvisionapp/'  // Only the main root
+  ? '/metameapp/'  // Only the main root
   : '/'
 })
