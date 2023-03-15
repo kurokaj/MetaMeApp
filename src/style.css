@@ -4,10 +4,18 @@
   box-sizing: border-box;
 }
 
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
 body,
 html{
   overflow-x: hidden;
   font-family: "Poppins", sans-serif;
+  margin: 0;  
 }
 
 .webgl{
@@ -21,7 +29,7 @@ nav{
   color:white;
   z-index: 2;
   position: relative;
-  padding: 4rem 8rem;
+  padding: 5% 5%;
   display: flex;
   justify-content: space-between;
 }
@@ -40,6 +48,7 @@ nav ul{
 
 .title {
   color:white;
+  width: 100%;
   z-index: 2;
   position: absolute;
   font-size: 2rem;
