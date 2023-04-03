@@ -1,0 +1,11 @@
+Model Information:
+* title:	Hypercasual Rigged Character
+* source:	https://sketchfab.com/3d-models/hypercasual-rigged-character-c72187c480d34b1b9bdd2950bf9ba4a1
+* author:	vikramgd (https://sketchfab.com/vikramgd)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Hypercasual Rigged Character" (https://sketchfab.com/3d-models/hypercasual-rigged-character-c72187c480d34b1b9bdd2950bf9ba4a1) by vikramgd (https://sketchfab.com/vikramgd) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
