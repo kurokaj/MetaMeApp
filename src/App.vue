@@ -19,7 +19,7 @@ const sphere = new THREE.Mesh( geometry, material );
 const gltfLoader = new GLTFLoader();
 gltfLoader.load(
 	// resource URL
-	'/hypercasual/scene.gltf',
+	'./hypercasual/scene.gltf',
 	// called when the resource is loaded
 	function ( gltf ) {
 
