@@ -8,12 +8,16 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls"
 
 // Scene
 const scene = new THREE.Scene();
+const clock = new THREE.Clock(); // For testing the bones of the rig
+
 
 // Object
 const geometry = new THREE.SphereGeometry( 2, 10, 10 );
 const material = new THREE.MeshStandardMaterial( { color: 0x00ff83,  } );
 const sphere = new THREE.Mesh( geometry, material );
 //scene.add( sphere );
+
+let modelGLTF, leftarm, rightarm; 
 
 // Gltf loader
 const gltfLoader = new GLTFLoader();
@@ -30,7 +34,9 @@ gltfLoader.load(
       x.style.display = "none";
     }
 
-    const modelGLTF = gltf.scene
+    modelGLTF = gltf.scene
+    rightarm = modelGLTF.getObjectByName( 'mixamorigRightArm_00' );
+    leftarm = modelGLTF.getObjectByName( 'mixamorigLeftArm_09' );
 
     console.log(modelGLTF)
 
@@ -114,8 +120,8 @@ const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true; // slower movement
 controls.enablePan = false; // disable zooming and dragging
 controls.enableZoom = false;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 1;
+//controls.autoRotate = true;
+//controls.autoRotateSpeed = 1;
 
 // Resizer
 window.addEventListener("resize", ()=>{
@@ -130,6 +136,19 @@ window.addEventListener("resize", ()=>{
 
 // Loop
 const loop = () => {
+
+  if ( modelGLTF ) {
+
+    if ( rightarm ) {
+      const t = clock.getElapsedTime();
+      rightarm.rotation.x += Math.sin( t ) * 0.005;
+    }
+    if ( leftarm ) {
+      const t = clock.getElapsedTime();
+      leftarm.rotation.x += Math.sin( t ) * 0.005;
+    }
+  }
+
     controls.update()
     renderer.render(scene, camera)
     window.requestAnimationFrame(loop)
