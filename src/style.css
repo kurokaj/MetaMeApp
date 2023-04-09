@@ -56,3 +56,52 @@ nav ul{
   top:90%;
   transform: translate(-50%, -90%)
 }
+
+#demo{
+  z-index: 3;
+  position:relative;
+  color: white;
+}
+
+video {
+  display: block;
+}
+
+.removed {
+  opacity: 0;
+}
+
+.camView {
+  position: relative;
+  float: left;
+  width: calc(100% - 20px);
+  margin: 10px;
+  cursor: pointer;
+  }
+.camView p {
+  position: absolute;
+  padding: 5px;
+  background-color: rgba(76, 0, 255, 0.85);
+  color: #FFF;
+  border: 1px dashed rgba(255, 255, 255, 0.7);
+  z-index: 2;
+  font-size: 12px;
+}
+
+.featureIndicator {
+  background: rgb(255, 13, 0);
+  z-index: 6;
+  position: absolute;
+  border-radius: 50%;
+  }
+
+.poseVisualization{
+  color:white;
+  z-index: 6;
+  position: absolute;
+  font-size: 2rem;
+  left:50%;
+  top:80%;
+  transform: translate(-50%, -80%)
+}
+  

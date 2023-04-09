@@ -5,19 +5,160 @@ import './style.css'
 import gsap from "gsap";
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls"
+import * as poseDetection from '@tensorflow-models/pose-detection';
+import '@mediapipe/pose';
+
+// ----------------------- Functions ----------------------------------------------
+
+// Check if webcam access is supported.
+function getUserMediaSupported() {
+  return !!(navigator.mediaDevices &&
+    navigator.mediaDevices.getUserMedia);
+}
+
+function enableCam(event) {
+  // Enable the live webcam view and start classification.
+  
+  // getUsermedia parameters to force video but not audio.
+  const constraints = {
+    video: true
+  };
+
+  // Activate the webcam stream.
+  navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+    video.srcObject = stream;
+    video.addEventListener('loadeddata', predictPoses);
+  });
+}
+
+async function loadBlazePose() {
+  const model = poseDetection.SupportedModels.BlazePose;
+  const detectorConfig = {
+    runtime: 'mediapipe', // or 'tfjs'
+    modelType: 'lite',
+    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose/`
+  };
+  const detector = await poseDetection.createDetector(model, detectorConfig);
+
+  // Flag to blcok the visibility of loading object
+  modelloaded = true
+
+  console.log("Blaze pose loaded on mediapipe runtime..")
+  // Clear the loader animation
+  var x = document.getElementById("loader");
+  if (ailoaded && modelloaded) {
+    x.style.display = "none";
+  }  
+  // Clear the loader text 
+  var x = document.getElementById("loaderText");
+  if (ailoaded && modelloaded) {
+    x.style.display = "none";
+  }  
+  poseModel = detector;
+}
+
+function predictPoses(){
+  if(poseModel && video){
+    poseModel.estimatePoses(video).then(function (predictions) {
+          for (let i = 0; i < children.length; i++) {
+              liveView.removeChild(children[i]);
+          }
+          children.splice(0);
+
+          if(predictions.length!=0){
+            let predictionsArray = predictions[0];
+            let keypoints = predictionsArray.keypoints;
+            for (let k=0; k < keypoints.length; k++) {
+              if (keypoints[k].score > 0.70) {
+                createFeatureIndicator(keypoints[k].x, keypoints[k].y);
+                // If keypoint is Nose (#0) update "midCapsule" range from 10%->90% (visualization gets Fd-up if used wide range)
+                if(keypoints[k].name == 'nose'){
+                  var loc = (keypoints[k].x / sizes.videoWidth)*100;
+                  console.log(loc)
+                  if(loc<2){
+                    loc = 2;
+                  }
+                  else if(loc>98){
+                    loc = 98;
+                  }
+                  midCapsule.style.transform = `translate(${loc}%, 0%)`
+                  midCapsuleText.style.transform = `translate(${loc}%, 0%)`
+                }
+              }
+            }
+          }
+          window.requestAnimationFrame(predictPoses);
+      });
+  }
+}
+
+function createFeatureIndicator(x, y) {
+    const featureIndicator = document.createElement('div');
+    featureIndicator.setAttribute('class', 'featureIndicator');
+    featureIndicator.style = "left: " + x + "px;"
+        + "top: " + y + "px;"
+        +  "width: .5rem; height: .5rem;"
+    liveView.appendChild(featureIndicator);
+    children.push(featureIndicator);
+}
+
+// ------------------------------------------------------------------------------------
+// ----------------------- Preprocessing ----------------------------------------------
+// Test webcam
+const bool = getUserMediaSupported()
+if (bool){
+  console.log("Camera is up and functional..")
+} 
+else {
+  console.warn('getUserMedia() is not supported by your browser');
+}
+
+let modelloaded, ailoaded;
+let modelGLTF, leftarm, rightarm, poseModel; 
+let video, liveView;
+let midCapsule, midCapsuleText;
+var children = [];
+
+// Sizes
+const sizes = {
+    width : window.innerWidth,
+    height : window.innerHeight,
+    videoWidth : 640
+}
+
+// Animate the page (timeline magic)
+const tl = gsap.timeline({defaults:{duration:1}});
+onMounted(() => {
+  tl.fromTo('nav', {y:'-100%', opacity:'0'}, {y:'0%',opacity:'1'})
+  tl.fromTo('.title', {opacity: '0'}, {opacity: '1'})
+
+  // Reference DOM elements after they are mounted
+  video = document.getElementById('webcam');
+  liveView = document.getElementById('liveView');
+  // Capsule view
+  midCapsule = document.getElementById('midCapsule');
+  midCapsuleText = document.getElementById('midCapsuleText');
+  // Enable webcam
+  console.log(video)
+  enableCam()
+
+})
+
+// -------------------------------------------------------------------------------------
+// ----------------------- Load models and Scene ---------------------------------------
+
+// Load the model
+loadBlazePose();
 
 // Scene
 const scene = new THREE.Scene();
 const clock = new THREE.Clock(); // For testing the bones of the rig
-
 
 // Object
 const geometry = new THREE.SphereGeometry( 2, 10, 10 );
 const material = new THREE.MeshStandardMaterial( { color: 0x00ff83,  } );
 const sphere = new THREE.Mesh( geometry, material );
 //scene.add( sphere );
-
-let modelGLTF, leftarm, rightarm; 
 
 // Gltf loader
 const gltfLoader = new GLTFLoader();
@@ -27,12 +168,19 @@ gltfLoader.load(
 	// called when the resource is loaded
 	function ( gltf ) {
 
+    // Flag to blcok the visibility of loading object
+    ailoaded = true;
+
+    // Clear the loader animation
     var x = document.getElementById("loader");
-    if (x.style.display === "none") {
-      x.style.display = "block";
-    } else {
+    if (ailoaded && modelloaded) {
       x.style.display = "none";
-    }
+    }  
+    // Clear the loader text 
+    var x = document.getElementById("loaderText");
+    if (ailoaded && modelloaded) {
+      x.style.display = "none";
+    }  
 
     modelGLTF = gltf.scene
     rightarm = modelGLTF.getObjectByName( 'mixamorigRightArm_00' );
@@ -47,6 +195,14 @@ gltfLoader.load(
     const tl_model = gsap.timeline({defaults:{duration:1}});
     tl_model.fromTo(modelGLTF.scale, {z:0, x:0, y:0}, {z:0.01, x:0.01, y:0.01})
 
+    // Helpers
+    const axesHelper = new THREE.AxesHelper( 5 );
+    scene.add( axesHelper );
+    const size = 10;
+    const divisions = 10;
+
+    const gridHelper = new THREE.GridHelper( size, divisions );
+    scene.add( gridHelper );
 
 		gltf.animations; // Array<THREE.AnimationClip>
 		gltf.scene; // THREE.Group
@@ -68,21 +224,6 @@ gltfLoader.load(
 
 	}
 );
-
-// Sizes
-const sizes = {
-    width : window.innerWidth,
-    height : window.innerHeight
-}
-
-// Helpers
-const axesHelper = new THREE.AxesHelper( 5 );
-scene.add( axesHelper );
-const size = 10;
-const divisions = 10;
-
-const gridHelper = new THREE.GridHelper( size, divisions );
-scene.add( gridHelper );
 
 // Light 
 const light = new THREE.PointLight(0xffffff, // Color of the light
@@ -134,7 +275,7 @@ window.addEventListener("resize", ()=>{
     renderer.setSize(sizes.width, sizes.height)
 });
 
-// Loop
+// ----------------------- The animation and prediction loop ---------------------------------------
 const loop = () => {
 
   if ( modelGLTF ) {
@@ -155,19 +296,14 @@ const loop = () => {
 };
 loop(); // rerenders every frame 
 
-// Animate the page (timeline magic)
-const tl = gsap.timeline({defaults:{duration:1}});
-onMounted(() => {
-  tl.fromTo('nav', {y:'-100%', opacity:'0'}, {y:'0%',opacity:'1'})
-  tl.fromTo('.title', {opacity: '0'}, {opacity: '1'})
-})
+// ------------------------------------------------------------------------------------------------
 
 </script>
 
 <template>
   <nav>
       <a href="/MetaMeApp">
-        Sphere
+        ARS MetaVerse
       </a>
       <ul>
         <li>Games</li>
@@ -187,12 +323,49 @@ onMounted(() => {
       <div class="rhombus big"></div>
     </div>
 
+    <p class="loadingText" id="loaderText">
+      Loading AI and 3D model
+    </p>
+
+    <section id="demo" class="removed">
+      <div id="liveView" class="camView">
+        <video id="webcam" autoplay muted width="640" height="480"></video>
+      </div>
+    </section>
+
+    <svg class="poseVisualization" width="40%" height="5%" >
+      <rect y="10" width="100%" height="50%" rx="5" style="fill:rgb(255,255,255);" />
+      <rect id="midCapsule" x="-15" y="0" width="30" height="100%" fill="silver" stroke="black" stroke-width="5" ry="10" rx="20"/>
+      <text id="midCapsuleText" x="-12" y="65%" class="font">33</text>
+    </svg>
+
+    <!--
     <h1 class="title">
-      Spin that shit
+      World still under production
     </h1>
+    -->
 </template>
 
 <style scoped>
+  #midCapsule{
+    transform: translate(30%, 0%)
+  }
+  #midCapsuleText{
+    transform: translate(30%, 0%)
+  }
+  .font {
+          font: bold 22px sans-serif;
+        }
+
+  .loadingText{
+    color:white;
+    z-index: 2;
+    position: absolute;
+    font-size: .8rem;
+    left:50%;
+    top:55%;
+    transform: translate(-50%, -50%)
+  }
   .breeding-rhombus-spinner {
       height: 65px;
       width: 65px;
