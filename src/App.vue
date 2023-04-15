@@ -36,7 +36,7 @@ async function loadBlazePose() {
   const detectorConfig = {
     runtime: 'mediapipe', // or 'tfjs'
     modelType: 'lite',
-    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose/`
+    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose`
   };
   const detector = await poseDetection.createDetector(model, detectorConfig);
 
