@@ -6,7 +6,8 @@ import gsap from "gsap";
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls"
 import * as poseDetection from '@tensorflow-models/pose-detection';
-import '@mediapipe/pose';
+//import '@mediapipe/pose';
+import * as mpPose from '@mediapipe/pose';
 
 // ----------------------- Functions ----------------------------------------------
 
@@ -36,7 +37,7 @@ async function loadBlazePose() {
   const detectorConfig = {
     runtime: 'mediapipe', // or 'tfjs'
     modelType: 'lite',
-    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose`
+    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose@${mpPose.VERSION}`
   };
   const detector = await poseDetection.createDetector(model, detectorConfig);
 
