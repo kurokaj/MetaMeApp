@@ -64,17 +64,24 @@ function predictPoses(){
               liveView.removeChild(children[i]);
           }
           children.splice(0);
+          var num = 0;
 
           if(predictions.length!=0){
             let predictionsArray = predictions[0];
             let keypoints = predictionsArray.keypoints;
+            
             for (let k=0; k < keypoints.length; k++) {
               if (keypoints[k].score > 0.70) {
-                createFeatureIndicator(keypoints[k].x, keypoints[k].y);
+                num=num+1; // increase the "found" kp's 
+
+                // Add indicator if point is within image range
+                if(keypoints[k].x>0 && keypoints[k].y>0 && keypoints[k].x<sizes.videoWidth && keypoints[k].y<sizes.videoHeight){
+                  createFeatureIndicator(keypoints[k].x, keypoints[k].y);
+                }
+
                 // If keypoint is Nose (#0) update "midCapsule" range from 10%->90% (visualization gets Fd-up if used wide range)
                 if(keypoints[k].name == 'nose'){
                   var loc = (keypoints[k].x / sizes.videoWidth)*100;
-                  console.log(loc)
                   if(loc<2){
                     loc = 2;
                   }
@@ -86,8 +93,26 @@ function predictPoses(){
                 }
               }
             }
+            console.log(num)
+            midCapsuleText.textContent=num.toString();
+
           }
           window.requestAnimationFrame(predictPoses);
+
+          fpsclock.stop(); // Set individual stoptime 
+          if(fpsclock.getSeconds()>1){
+            // Update FPS counter text
+            FPSCounter += 1;
+            FPSText.textContent = "FPS: " + FPSCounter.toString();
+            fpsclock.clear(); // Clear time from start and end
+            fpsclock.start(); // Start new time
+            FPSCounter = 0;
+          }
+          else{
+            // Increment FPS counter
+            FPSCounter += 1;
+          }
+
       });
   }
 }
@@ -100,6 +125,30 @@ function createFeatureIndicator(x, y) {
         +  "width: .5rem; height: .5rem;"
     liveView.appendChild(featureIndicator);
     children.push(featureIndicator);
+}
+
+function Stopwatch(){
+  var startTime, endTime, instance = this;
+
+  this.start = function (){
+    startTime = new Date();
+  };
+
+  this.stop = function (){
+    endTime = new Date();
+  }
+
+  this.clear = function (){
+    startTime = null;
+    endTime = null;
+  }
+
+  this.getSeconds = function(){
+    if (!endTime){
+    return 0;
+    }
+    return Math.round((endTime.getTime() - startTime.getTime()) / 1000);
+  }
 }
 
 // ------------------------------------------------------------------------------------
@@ -116,14 +165,18 @@ else {
 let modelloaded, ailoaded;
 let modelGLTF, leftarm, rightarm, poseModel; 
 let video, liveView;
-let midCapsule, midCapsuleText;
+let midCapsule, midCapsuleText, FPSText;
+var fpsclock = new Stopwatch();
+fpsclock.start();
+var FPSCounter = 0;
 var children = [];
 
 // Sizes
 const sizes = {
     width : window.innerWidth,
     height : window.innerHeight,
-    videoWidth : 640
+    videoWidth : 640,
+    videoHeight: 480
 }
 
 // Animate the page (timeline magic)
@@ -138,6 +191,7 @@ onMounted(() => {
   // Capsule view
   midCapsule = document.getElementById('midCapsule');
   midCapsuleText = document.getElementById('midCapsuleText');
+  FPSText = document.getElementById('fpsText');
   // Enable webcam
   console.log(video)
   enableCam()
@@ -327,11 +381,10 @@ loop(); // rerenders every frame
       Loading AI and 3D model
     </p>
 
-    <section id="demo" class="removed">
-      <div id="liveView" class="camView">
-        <video id="webcam" autoplay muted width="640" height="480"></video>
-      </div>
-    </section>
+    
+    <div id="liveView" class="camView">
+      <video id="webcam" autoplay muted width="640" height="480"></video>
+    </div>
 
     <svg class="poseVisualization" width="40%" height="5%" >
       <rect y="10" width="100%" height="50%" rx="5" style="fill:rgb(255,255,255);" />
@@ -339,9 +392,8 @@ loop(); // rerenders every frame
       <text id="midCapsuleText" x="-12" y="65%" class="font">33</text>
     </svg>
 
-    <!--
-    <h1 class="title">
-      World still under production
+    <h1 id="fpsText" class="fps">
+      X
     </h1>
     -->
 </template>
