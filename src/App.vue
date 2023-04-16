@@ -6,8 +6,10 @@ import gsap from "gsap";
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls"
 import * as poseDetection from '@tensorflow-models/pose-detection';
-//import '@mediapipe/pose';
-import * as mpPose from '@mediapipe/pose';
+// Mediapipe runtime
+//import * as mpPose from '@mediapipe/pose';
+// Tensorflow runtime
+import * as tfPose from '@tensorflow/tfjs-backend-webgl';
 
 // ----------------------- Functions ----------------------------------------------
 
@@ -35,9 +37,10 @@ function enableCam(event) {
 async function loadBlazePose() {
   const model = poseDetection.SupportedModels.BlazePose;
   const detectorConfig = {
-    runtime: 'mediapipe', // or 'tfjs'
-    modelType: 'lite',
-    solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose@${mpPose.VERSION}`
+    runtime: 'tfjs', // 'mediapipe' or 'tfjs'
+    modelType: 'full',
+    //solutionPath: `https://cdn.jsdelivr.net/npm/@mediapipe/pose@${mpPose.VERSION}` //Mediapipe
+    solutionPath: 'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@${tfPose.VERSION}'  // Tensorflow
   };
   const detector = await poseDetection.createDetector(model, detectorConfig);
 
@@ -94,7 +97,6 @@ function predictPoses(){
                 }
               }
             }
-            console.log(num)
             midCapsuleText.textContent=num.toString();
 
           }
