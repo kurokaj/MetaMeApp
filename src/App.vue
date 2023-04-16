@@ -74,6 +74,8 @@ function predictPoses(){
             let predictionsArray = predictions[0];
             let keypoints = predictionsArray.keypoints;
             
+            console.log(keypoints);
+
             for (let k=0; k < keypoints.length; k++) {
               if (keypoints[k].score > 0.70) {
                 num=num+1; // increase the "found" kp's 
@@ -130,6 +132,11 @@ function createFeatureIndicator(x, y) {
     children.push(featureIndicator);
 }
 
+function calculateHandAngles(predictions){
+  // Calculate angles for the hands to test model movement 
+  // Predictions consist of keypoints  
+}
+
 function Stopwatch(){
   var startTime, endTime, instance = this;
 
@@ -166,13 +173,54 @@ else {
 }
 
 let modelloaded, ailoaded;
-let modelGLTF, leftarm, rightarm, poseModel; 
+let modelGLTF, poseModel; 
+let chestmiddle; // Keep the angle to shoulders constant 
+let leftshoulder, leftarm, leftforearm, leftwrist, leftfingers, leftfingers2, leftfingers3, leftfingers4; 
+let rightshoulder, rightarm, rightforearm, rightwrist, rightfingers, rightfingers2, rightfingers3, rightfingers4; 
 let video, liveView;
 let midCapsule, midCapsuleText, FPSText;
 var fpsclock = new Stopwatch();
 fpsclock.start();
 var FPSCounter = 0;
 var children = [];
+
+// Blazepose dictionary
+const jointMapping = {
+  0 : 'nose',
+  1 : 'left_eye_inner',
+  2 : 'left_eye',
+  3 : 'left_eye_outer',
+  4 : 'right_eye_inner',
+  5 : 'right_eye',
+  6 : 'right_eye_outer',
+  7 : 'left_ear',
+  8 : 'right_ear',
+  9 : 'mouth_left',
+  10: 'mouth_right',
+  11: 'left_shoulder',
+  12: 'right_shoulder',
+  13: 'left_elbow',
+  14: 'right_elbow',
+  15: 'left_wrist',
+  16: 'right_wrist',
+  17: 'left_pinky',
+  18: 'right_pinky',
+  19: 'left_index',
+  20: 'right_index',
+  21: 'left_thumb',
+  22: 'right_thumb',
+  23: 'left_hip',
+  24: 'right_hip',
+  25: 'left_knee',
+  26: 'right_knee',
+  27: 'left_ankle',
+  28: 'right_ankle',
+  29: 'left_heel',
+  30: 'right_heel',
+  31: 'left_foot_index',
+  32: 'right_foot_index',
+  33: 'lenght',
+}
 
 // Sizes
 const sizes = {
@@ -240,8 +288,39 @@ gltfLoader.load(
     }  
 
     modelGLTF = gltf.scene
+
+    // ******* Connect joints to placeholders *******
+    // TORSO
+    chestmiddle = modelGLTF.getObjectByName( 'mixamorigSpine2_04' );
+
+    // ARMS 
+    rightshoulder = modelGLTF.getObjectByName( 'mixamorigRightShoulder_020' );
+    leftshoulder = modelGLTF.getObjectByName( 'mixamorigLeftShoulder_08' );
+
     rightarm = modelGLTF.getObjectByName( 'mixamorigRightArm_00' );
     leftarm = modelGLTF.getObjectByName( 'mixamorigLeftArm_09' );
+
+    leftforearm = modelGLTF.getObjectByName( 'mixamorigLeftForeArm_010' );
+    rightforearm = modelGLTF.getObjectByName( 'mixamorigRightForeArm_021' );
+
+    leftwrist = modelGLTF.getObjectByName( 'mixamorigLeftHand_011' );
+    rightwrist = modelGLTF.getObjectByName( 'mixamorigRightHand_022' );
+
+    leftfingers = modelGLTF.getObjectByName( 'mixamorigLeftHandIndex1_016' );
+    rightfingers = modelGLTF.getObjectByName( 'mixamorigRightHandIndex1_027' );
+
+    leftfingers2 = modelGLTF.getObjectByName( 'mixamorigLeftHandIndex2_017' );
+    rightfingers2 = modelGLTF.getObjectByName( 'mixamorigRightHandIndex2_028' );
+
+    leftfingers3 = modelGLTF.getObjectByName( 'mixamorigLeftHandIndex3_018' );
+    rightfingers3 = modelGLTF.getObjectByName( 'mixamorigRightHandIndex3_029' );
+
+    leftfingers4 = modelGLTF.getObjectByName( 'mixamorigLeftHandIndex4_019' );
+    rightfingers4 = modelGLTF.getObjectByName( 'mixamorigRightHandIndex4_030' );
+
+    // LEGS
+
+    // ******* *******
 
     console.log(modelGLTF)
 
@@ -340,10 +419,24 @@ const loop = () => {
     if ( rightarm ) {
       const t = clock.getElapsedTime();
       rightarm.rotation.x += Math.sin( t ) * 0.005;
+      rightforearm.rotation.z += -Math.sin( t ) * 0.005;
+      rightwrist.rotation.y += Math.sin( t ) * 0.005;
+      rightfingers.rotation.x += Math.sin( t ) * 0.005;
+      rightfingers2.rotation.x += Math.sin( t ) * 0.005;
+      rightfingers3.rotation.x += Math.sin( t ) * 0.005;
+      rightfingers4.rotation.x += Math.sin( t ) * 0.005;
+
     }
     if ( leftarm ) {
       const t = clock.getElapsedTime();
       leftarm.rotation.x += Math.sin( t ) * 0.005;
+      leftforearm.rotation.z += Math.sin( t ) * 0.005;
+      leftwrist.rotation.y += -Math.sin( t ) * 0.005;
+      leftfingers.rotation.x += Math.sin( t ) * 0.005;
+      leftfingers2.rotation.x += Math.sin( t ) * 0.005;
+      leftfingers3.rotation.x += Math.sin( t ) * 0.005;
+      leftfingers4.rotation.x += Math.sin( t ) * 0.005;
+
     }
   }
 
